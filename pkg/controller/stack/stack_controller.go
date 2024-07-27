@@ -26,6 +26,7 @@ import (
 	"github.com/pulumi/pulumi-kubernetes-operator/version"
 	"github.com/pulumi/pulumi/sdk/v3/go/auto"
 	"github.com/pulumi/pulumi/sdk/v3/go/auto/optdestroy"
+	"github.com/pulumi/pulumi/sdk/v3/go/auto/optpreview"
 	"github.com/pulumi/pulumi/sdk/v3/go/auto/optrefresh"
 	"github.com/pulumi/pulumi/sdk/v3/go/auto/optup"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
@@ -1644,6 +1645,28 @@ func (sess *reconcileStackSession) UpdateStack(ctx context.Context, targets []st
 	}
 	permalink := shared.Permalink(p)
 	return shared.StackUpdateSucceeded, permalink, &result, nil
+}
+
+// PreviewStack runs the preview on the stack and returns a preview status code
+// and error.
+func (sess *reconcileStackSession) PreviewStack(ctx context.Context, targets []string) (shared.StackPreviewStatus, *auto.PreviewResult, error) {
+	writer := sess.logger.LogWriterDebug("Pulumi Preview")
+	defer contract.IgnoreClose(writer)
+
+	opts := []optpreview.Option{optpreview.ProgressStreams(writer), optpreview.UserAgent(execAgent)}
+	if targets != nil {
+		opts = append(opts, optpreview.Target(targets))
+	}
+
+	result, err := sess.autoStack.Preview(ctx, opts...)
+	if err != nil {
+		if auto.IsSelectStack404Error(err) {
+			return shared.StackNotFoundInPreview, nil, err
+		}
+		return shared.StackPreviewFailed, nil, err
+	}
+
+	return shared.StackPreviewSucceeded, &result, nil
 }
 
 // GetStackOutputs gets the stack outputs and parses them into a map.

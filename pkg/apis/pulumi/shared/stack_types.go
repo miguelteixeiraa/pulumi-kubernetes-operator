@@ -404,3 +404,40 @@ const (
 
 // Permalink is the Pulumi Service URL of the stack operation.
 type Permalink string
+
+type StackPreviewStateMessage string
+
+const (
+	// SucceededStackPreviewMessage is a const to indicate success in stack preview status state.
+	SucceededStackPreviewMessage StackPreviewStateMessage = "succeeded"
+	// FailedStackPreviewMessage is a const to indicate stack preview failure in stack status state.
+	FailedStackPreviewMessage StackPreviewStateMessage = "failed"
+)
+
+// StackPreviewState is the status of a stack preview
+type StackPreviewState struct {
+	// State is the state of the stack update - one of `succeeded` or `failed`
+	State StackPreviewStateMessage `json:"state,omitempty"`
+	// Last commit attempted
+	LastAttemptedCommit string `json:"lastAttemptedCommit,omitempty"`
+	// Last commit successfully applied
+	LastSuccessfulCommit string `json:"lastSuccessfulCommit,omitempty"`
+	// Permalink is the Pulumi Console URL of the stack operation.
+	Permalink Permalink `json:"permalink,omitempty"`
+}
+
+// StackPreviewStatus is the status code for the result of a Stack Preview run.
+type StackPreviewStatus int
+
+const (
+	// StackPreviewSucceeded indicates that the stack preview completed successfully.
+	StackPreviewSucceeded StackPreviewStatus = 0
+	// StackPreviewFailed indicates that the stack preview failed to complete.
+	StackPreviewFailed StackPreviewStatus = 1
+	// StackPreviewPendingOperations indicates that the stack preview failed to complete due
+	// to pending operations halting the stack preview run.
+	StackPreviewPendingOperations StackPreviewStatus = 2
+	// StackNotFoundInPreview indicates that the stack preview failed to complete due
+	// to stack not being found (HTTP 404) in the Pulumi Service.
+	StackNotFoundInPreview StackPreviewStatus = 3
+)
