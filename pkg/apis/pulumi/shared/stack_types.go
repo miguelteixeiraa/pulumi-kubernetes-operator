@@ -168,6 +168,13 @@ type GitSource struct {
 	PreviewBranch string `json:"previewbranch,omitempty"`
 }
 
+type WorkdirType int
+
+const (
+	UpdateWorkdir  WorkdirType = 1
+	PreviewWorkdir WorkdirType = 2
+)
+
 // PrerequisiteRef refers to another stack, and gives requirements for the prerequisite to be
 // considered satisfied.
 type PrerequisiteRef struct {

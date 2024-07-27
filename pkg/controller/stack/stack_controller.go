@@ -633,7 +633,7 @@ func (r *ReconcileStack) Reconcile(ctx context.Context, request reconcile.Reques
 			sess.addSSHKeysToKnownHosts(sess.stack.ProjectRepo)
 		}
 
-		if currentCommit, err = sess.SetupWorkdirFromGitSource(ctx, gitAuth, gitSource); err != nil {
+		if currentCommit, err = sess.SetupWorkdirFromGitSource(ctx, gitAuth, gitSource, shared.UpdateWorkdir); err != nil {
 			r.emitEvent(instance, pulumiv1.StackInitializationFailureEvent(), "Failed to initialize stack: %v", err.Error())
 			reqLogger.Error(err, "Failed to setup Pulumi workspace", "Stack.Name", stack.Stack)
 			r.markStackFailed(sess, instance, err, "", "")
@@ -1300,14 +1300,25 @@ func (sess *reconcileStackSession) getWorkspaceDir() string {
 	return filepath.Join(sess.rootDir, "workspace")
 }
 
-func (sess *reconcileStackSession) SetupWorkdirFromGitSource(ctx context.Context, gitAuth *auto.GitAuth, source *shared.GitSource) (string, error) {
-	repo := auto.GitRepo{
-		URL:         source.ProjectRepo,
-		ProjectPath: source.RepoDir,
-		CommitHash:  source.Commit,
-		Branch:      source.Branch,
-		Auth:        gitAuth,
+func (sess *reconcileStackSession) SetupWorkdirFromGitSource(ctx context.Context, gitAuth *auto.GitAuth, source *shared.GitSource, workdirType shared.WorkdirType) (string, error) {
+	var repo auto.GitRepo
+	if workdirType == shared.UpdateWorkdir {
+		repo = auto.GitRepo{
+			URL:         source.ProjectRepo,
+			ProjectPath: source.RepoDir,
+			CommitHash:  source.Commit,
+			Branch:      source.Branch,
+			Auth:        gitAuth,
+		}
+	} else if workdirType == shared.PreviewWorkdir {
+		repo = auto.GitRepo{
+			URL:         source.ProjectRepo,
+			ProjectPath: source.RepoDir,
+			Branch:      source.PreviewBranch,
+			Auth:        gitAuth,
+		}
 	}
+
 	homeDir := sess.getPulumiHome()
 	workspaceDir := sess.getWorkspaceDir()
 
