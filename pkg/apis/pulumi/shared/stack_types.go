@@ -162,6 +162,10 @@ type GitSource struct {
 	// When specified, the operator will periodically poll to check if the branch has any new commits.
 	// The frequency of the polling is configurable through ResyncFrequencySeconds, defaulting to every 60 seconds.
 	Branch string `json:"branch,omitempty"`
+	// (optional) PreviewBranch is the branch name to be used as a ref for preview. It should be either the simple or
+	// fully qualified ref name, e.g. refs/heads/master.
+	// When specified, the operator will hold a preview link in the CR status.
+	PreviewBranch string `json:"previewbranch,omitempty"`
 }
 
 // PrerequisiteRef refers to another stack, and gives requirements for the prerequisite to be
